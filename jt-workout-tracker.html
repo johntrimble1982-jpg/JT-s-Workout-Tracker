@@ -1,1 +1,106 @@
-index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="JT Workout">
+<title>JT's Workout Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f1f5f9; color: #0f172a; min-height: 100vh; }
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+  input[type=number] { -moz-appearance: textfield; }
+  #app { max-width: 480px; margin: 0 auto; padding-bottom: 48px; }
+  .hero { padding: 48px 20px 28px; border-radius: 0 0 28px 28px; margin-bottom: 20px; position: relative; overflow: hidden; transition: background 0.4s ease; }
+  .hero-circle1 { position:absolute; top:-40px; right:-40px; width:160px; height:160px; border-radius:50%; background:rgba(255,255,255,0.1); }
+  .hero-circle2 { position:absolute; bottom:-20px; right:40px; width:80px; height:80px; border-radius:50%; background:rgba(255,255,255,0.08); }
+  .hero-label { color:rgba(255,255,255,0.75); font-size:13px; font-weight:600; margin-bottom:4px; letter-spacing:0.04em; }
+  .hero-title { font-size:34px; font-weight:800; color:white; line-height:1.1; }
+  .hero-top { display:flex; align-items:center; justify-content:space-between; }
+  .hero-bottom { margin-top:16px; display:flex; gap:8px; align-items:center; }
+  .hero-badge { background:rgba(255,255,255,0.2); border-radius:100px; padding:4px 12px; color:white; font-size:12px; font-weight:600; }
+  .hero-complete { background:rgba(255,255,255,0.95); border-radius:100px; padding:4px 12px; font-size:12px; font-weight:700; display:none; }
+  .ring-wrap { position:relative; width:64px; height:64px; flex-shrink:0; }
+  .ring-wrap svg { transform: rotate(-90deg); }
+  .ring-bg { stroke: rgba(255,255,255,0.2); }
+  .ring-fg { stroke: rgba(255,255,255,0.9); transition: stroke-dashoffset 0.5s ease; stroke-linecap: round; }
+  .ring-pct { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:white; font-weight:800; font-size:13px; }
+  .tabs { display:flex; gap:8px; padding:0 16px 4px; overflow-x:auto; margin-bottom:20px; scrollbar-width:none; }
+  .tabs::-webkit-scrollbar { display:none; }
+  .tab-pill { border:none; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:13px; padding:8px 16px; border-radius:100px; transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1); background:white; color:#94a3b8; box-shadow:0 1px 3px rgba(0,0,0,0.07); white-space:nowrap; }
+  .tab-pill.active { color:white; transform:scale(1.05); box-shadow:0 4px 14px rgba(0,0,0,0.18); }
+  .cards { padding: 0 16px; }
+  .ex-card { background:white; border-radius:18px; padding:16px; margin-bottom:10px; box-shadow:0 1px 4px rgba(0,0,0,0.06); transition:box-shadow 0.2s; }
+  .ex-card.done { box-shadow: 0 2px 12px var(--card-glow); }
+  .ex-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; }
+  .ex-name { font-weight:700; font-size:15px; color:#0f172a; transition:color 0.2s; line-height:1.3; }
+  .ex-card.done .ex-name { color: var(--pill); }
+  .ex-meta { font-size:12px; font-weight:500; color:#94a3b8; margin-top:2px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .target-badge { border-radius:6px; padding:1px 7px; font-weight:700; font-size:11px; background: var(--badge-bg); color: var(--pill); }
+  .set-count { font-size:12px; font-weight:700; border-radius:8px; padding:3px 8px; transition:all 0.2s; white-space:nowrap; color:#cbd5e1; background:#f8fafc; }
+  .set-count.has-reps { color:var(--pill); background:var(--badge-bg); }
+  .sets-row { display:flex; gap:8px; flex-wrap:wrap; }
+  .set-wrap { display:flex; flex-direction:column; align-items:center; }
+  .set-input { width:52px; height:52px; border-radius:14px; border:2px solid #e2e8f0; background:white; font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:16px; text-align:center; color:#0f172a; outline:none; transition:all 0.15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+  .set-input:focus { border-color:var(--pill); box-shadow:0 0 0 3px var(--focus-ring); }
+  .set-input.filled { border-color:var(--pill); color:var(--pill); background:var(--badge-bg); }
+  .set-input::placeholder { color:#cbd5e1; font-weight:400; }
+  .set-unit { font-size:10px; font-weight:700; color:#cbd5e1; margin-top:4px; }
+  .set-input.filled + .set-unit { color: var(--pill); }
+  .footer { display:flex; justify-content:space-between; align-items:center; padding:0 16px; margin-top:16px; }
+  .footer-msg { font-size:12px; color:#94a3b8; font-weight:500; }
+  .clear-btn { background:#fee2e2; color:#ef4444; border:none; border-radius:8px; font-family:'Plus Jakarta Sans',sans-serif; font-weight:600; font-size:12px; padding:6px 12px; cursor:pointer; transition:background 0.15s; }
+  .clear-btn:hover { background:#fecaca; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const WORKOUTS = [
+  { id:"push", label:"Push", gradient:"linear-gradient(135deg,#f97316,#ef4444)", pill:"#f97316", focusRing:"rgba(249,115,22,0.2)", badgeBg:"rgba(249,115,22,0.08)", glow:"rgba(249,115,22,0.25)", exercises:[ {name:"DB Flat Bench Press",weight:"22.5 kg",sets:4,unit:"reps",target:"10\u201312"}, {name:"Overhead Barbell Press",weight:"32.5 kg",sets:3,unit:"reps",target:"8\u201310"}, {name:"DB/Cable Flyes",weight:"26 kg",sets:3,unit:"reps",target:"12"}, {name:"Tricep Dips",weight:"Bodyweight",sets:3,unit:"reps",target:"max"}, {name:"Skull Crushers",weight:"25 kg",sets:3,unit:"reps",target:"10"}, {name:"Lu Raises",weight:"6.25 kg",sets:3,unit:"reps",target:"max"} ] },
+  { id:"pull", label:"Pull", gradient:"linear-gradient(135deg,#6366f1,#3b82f6)", pill:"#6366f1", focusRing:"rgba(99,102,241,0.2)", badgeBg:"rgba(99,102,241,0.08)", glow:"rgba(99,102,241,0.25)", exercises:[ {name:"Pull-Ups",weight:"Bodyweight",sets:4,unit:"reps",target:"max"}, {name:"Lat Pull Downs",weight:"61 kg",sets:3,unit:"reps",target:"12"}, {name:"Bent Over Barbell Rows",weight:"57.5 kg",sets:3,unit:"reps",target:"10"}, {name:"DB Rows",weight:"25 kg",sets:3,unit:"reps",target:"10"}, {name:"Single-Arm Cable Curls",weight:"30 kg",sets:3,unit:"reps",target:"8\u201310"}, {name:"Incline Seated DB Curls",weight:"12.5 kg",sets:3,unit:"reps",target:"max"} ] },
+  { id:"legs", label:"Legs", gradient:"linear-gradient(135deg,#10b981,#06b6d4)", pill:"#10b981", focusRing:"rgba(16,185,129,0.2)", badgeBg:"rgba(16,185,129,0.08)", glow:"rgba(16,185,129,0.25)", exercises:[ {name:"DB Bulgarian Split Squat",weight:"16 kg DBs",sets:4,unit:"reps",target:"8\u201310"}, {name:"Supported Single-Leg RDL",weight:"20 kg DB",sets:3,unit:"reps",target:"10"}, {name:"Leg Extension",weight:"50 kg",sets:3,unit:"reps",target:"12"}, {name:"Hamstring Curls",weight:"28 kg",sets:3,unit:"reps",target:"12"}, {name:"Machine Calf Raises",weight:"54 kg",sets:3,unit:"reps",target:"15"} ] },
+  { id:"core", label:"Core", gradient:"linear-gradient(135deg,#a855f7,#ec4899)", pill:"#a855f7", focusRing:"rgba(168,85,247,0.2)", badgeBg:"rgba(168,85,247,0.08)", glow:"rgba(168,85,247,0.25)", exercises:[ {name:"Cable Crunches",weight:"65 kg",sets:3,unit:"reps",target:"12"}, {name:"Farmers Walk",weight:"20 kg x 2",sets:4,unit:"secs",target:"45"}, {name:"Reverse EZ Bar Curls",weight:"15 kg",sets:3,unit:"reps",target:"16"}, {name:"Hanging Leg Raises",weight:"Bodyweight",sets:3,unit:"reps",target:"12\u201315"}, {name:"Russian Twists",weight:"12 kg",sets:3,unit:"reps",target:"24"}, {name:"Reverse Plank",weight:"10 kg",sets:3,unit:"secs",target:"35"} ] }
+];
+const STORAGE_KEY="jt_workout_tracker_v2";
+function buildEmpty(){const log={};WORKOUTS.forEach(w=>{log[w.id]={};w.exercises.forEach(ex=>{log[w.id][ex.name]=Array(ex.sets).fill("")});});return log;}
+let state={active:"push",log:buildEmpty()};
+try{const s=localStorage.getItem(STORAGE_KEY);if(s)state.log=JSON.parse(s);}catch{}
+function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state.log));}catch{}}
+function getW(){return WORKOUTS.find(w=>w.id===state.active);}
+function totalSets(w){return w.exercises.reduce((a,ex)=>a+ex.sets,0);}
+function doneSets(w){return w.exercises.reduce((a,ex)=>a+(state.log[w.id]?.[ex.name]||[]).filter(v=>v!=="").length,0);}
+function render(){
+  const w=getW(),total=totalSets(w),done=doneSets(w),pct=total>0?(done/total)*100:0,complete=done===total&&total>0,circum=2*Math.PI*26;
+  document.getElementById("app").innerHTML=`<div style="--pill:${w.pill};--focus-ring:${w.focusRing};--badge-bg:${w.badgeBg};--card-glow:${w.glow}"><div class="hero" style="background:${w.gradient}"><div class="hero-circle1"></div><div class="hero-circle2"></div><div class="hero-label">JT'S WORKOUT TRACKER</div><div class="hero-top"><div class="hero-title">${w.label} Day</div><div class="ring-wrap"><svg width="64" height="64"><circle class="ring-bg" cx="32" cy="32" r="26" fill="none" stroke-width="5"/><circle class="ring-fg" cx="32" cy="32" r="26" fill="none" stroke-width="5" stroke-dasharray="${circum}" stroke-dashoffset="${circum*(1-pct/100)}"/></svg><div class="ring-pct">${Math.round(pct)}%</div></div></div><div class="hero-bottom"><div class="hero-badge">${done}/${total} sets</div>${complete?`<div class="hero-complete" style="color:${w.pill}">✓ Complete!</div>`:""}</div></div><div class="tabs">${WORKOUTS.map(t=>{const td=doneSets(t),tt=totalSets(t),isActive=t.id===state.active;return`<button class="tab-pill${isActive?" active":""}" style="${isActive?`background:${t.gradient}`:""}" onclick="switchTab('${t.id}')">${t.label}${td>0&&!isActive?`<span style="margin-left:4px;font-size:11px;color:#94a3b8">${td}/${tt}</span>`:""}</button>`;}).join("")}</div><div class="cards">${w.exercises.map(ex=>{const vals=state.log[w.id]?.[ex.name]||Array(ex.sets).fill(""),exDone=vals.filter(v=>v!=="").length,allDone=exDone===ex.sets;return`<div class="ex-card${allDone?" done":""}" style="--pill:${w.pill};--badge-bg:${w.badgeBg};--focus-ring:${w.focusRing};--card-glow:${w.glow}"><div class="ex-top"><div style="flex:1;padding-right:8px"><div class="ex-name">${allDone?"✓ ":""}${ex.name}</div><div class="ex-meta">${ex.weight}<span class="target-badge">${ex.target} ${ex.unit}</span></div></div><div class="set-count${exDone>0?" has-reps":""}">${exDone}/${ex.sets}</div></div><div class="sets-row">${Array.from({length:ex.sets},(_,i)=>`<div class="set-wrap"><input class="set-input${vals[i]!==""?" filled":""}" style="--pill:${w.pill};--badge-bg:${w.badgeBg};--focus-ring:${w.focusRing}" type="number" inputmode="numeric" placeholder="${ex.target}" value="${vals[i]}" data-ex="${encodeURIComponent(ex.name)}" data-i="${i}" oninput="handleInput(this)"><span class="set-unit">${ex.unit}</span></div>`).join("")}</div></div>`;}).join("")}<div class="footer"><span class="footer-msg">${complete?"🎉 Great session!":`${total-done} sets to go`}</span><button class="clear-btn" onclick="clearSession()">Reset session</button></div></div></div>`;
+}
+function switchTab(id){state.active=id;render();}
+function handleInput(el){
+  const exName=decodeURIComponent(el.dataset.ex),i=parseInt(el.dataset.i),val=el.value;
+  if(!state.log[state.active])state.log[state.active]={};
+  if(!state.log[state.active][exName])state.log[state.active][exName]=[];
+  state.log[state.active][exName][i]=val;save();
+  el.classList.toggle("filled",val!=="");
+  const card=el.closest(".ex-card"),allInputs=card.querySelectorAll(".set-input"),exDone=[...allInputs].filter(inp=>inp.value!=="").length,exTotal=allInputs.length,allDone=exDone===exTotal;
+  card.classList.toggle("done",allDone);
+  card.querySelector(".ex-name").textContent=(allDone?"✓ ":"")+decodeURIComponent(el.dataset.ex);
+  card.querySelector(".set-count").textContent=`${exDone}/${exTotal}`;
+  card.querySelector(".set-count").classList.toggle("has-reps",exDone>0);
+  const w=getW(),total=totalSets(w),done=doneSets(w),pct=total>0?(done/total)*100:0,circum=2*Math.PI*26;
+  const ringFg=document.querySelector(".ring-fg"),ringPct=document.querySelector(".ring-pct"),heroBadge=document.querySelector(".hero-badge"),heroComplete=document.querySelector(".hero-complete"),footerMsg=document.querySelector(".footer-msg");
+  if(ringFg)ringFg.setAttribute("stroke-dashoffset",circum*(1-pct/100));
+  if(ringPct)ringPct.textContent=Math.round(pct)+"%";
+  if(heroBadge)heroBadge.textContent=`${done}/${total} sets`;
+  if(heroComplete)heroComplete.style.display=(done===total&&total>0)?"block":"none";
+  if(footerMsg)footerMsg.textContent=(done===total&&total>0)?"🎉 Great session!":total-done+" sets to go";
+}
+function clearSession(){const w=getW();w.exercises.forEach(ex=>{state.log[w.id][ex.name]=Array(ex.sets).fill("");});save();render();}
+render();
+</script>
+</body>
+</html>
